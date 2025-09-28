@@ -32,7 +32,7 @@ template VotingCircuit(depth){
     signal cur[depth + 1];
     cur[0] <== leaf;
     for (var i = 0; i < depth; i++){
-        pathIndices[i] * (pathIndices[i] - 1) === 0; // Ensure pathIndices are either 0 or 1
+        //pathIndices[i] * (pathIndices[i] - 1) === 0; // Ensure pathIndices are either 0 or 1
         left[i]  <== cur[i] + pathIndices[i] * (pathElements[i] - cur[i]);
         right[i] <== pathElements[i] + pathIndices[i] * (cur[i] - pathElements[i]);
         poseidon2[i] = Poseidon(2);  
