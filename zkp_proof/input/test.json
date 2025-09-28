@@ -1,0 +1,10 @@
+{
+    "secret": 123,
+    "nullifierTrapdoor": 456,
+    "vote": 1,
+    "pathElements": [888888, 999999],
+    "pathIndices": [0, 1],
+    "numCandidates": 3,
+    "electionId": 42,
+    "merkleRoot": 111111111
+}

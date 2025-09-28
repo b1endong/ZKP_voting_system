@@ -23,21 +23,23 @@ template VotingCircuit(depth){
     poseidon1.inputs[0] <== secret;
     signal leaf;
     leaf <== poseidon1.out;
+    
 
     // Compute the Merkle root from the leaf and the path
+    signal left[depth];
+    signal right[depth];
+    component poseidon2[depth];
     signal cur[depth + 1];
     cur[0] <== leaf;
     for (var i = 0; i < depth; i++){
         pathIndices[i] * (pathIndices[i] - 1) === 0; // Ensure pathIndices are either 0 or 1
-        signal left;
-        signal right;
-        left <== (1 - pathIndices[i]) * cur[i] + pathIndices[i] * pathElements[i];
-        right <== pathIndices[i] * cur[i] + (1 - pathIndices[i]) * pathElements[i];
-        component poseidon2[i] = Poseidon(2);  
-        poseidon2[i].inputs[0] <== left;
-        poseidon2[i].inputs[1] <== right;
+        left[i]  <== cur[i] + pathIndices[i] * (pathElements[i] - cur[i]);
+        right[i] <== pathElements[i] + pathIndices[i] * (cur[i] - pathElements[i]);
+        poseidon2[i] = Poseidon(2);  
+        poseidon2[i].inputs[0] <== left[i];
+        poseidon2[i].inputs[1] <== right[i];
         cur[i + 1] <== poseidon2[i].out;
-    }
+    }   
     cur[depth] === merkleRoot;
     
     // 0 <= vote < numCandidates
@@ -52,5 +54,6 @@ template VotingCircuit(depth){
     poseidon3.inputs[1] <== electionId;
     nullifierHash <== poseidon3.out; 
 
-    component main = {public [numCandidates, electionId, merkleRoot, nullifierHash]} = VotingCircuit(20);
+    
 }
+component main = VotingCircuit(2);
