@@ -56,4 +56,4 @@ template VotingCircuit(depth){
 
     
 }
-component main = VotingCircuit(2);
+component main = VotingCircuit(3);

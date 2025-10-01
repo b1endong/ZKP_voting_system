@@ -1,0 +1,14 @@
+{
+    "secret": "123",
+    "nullifierTrapdoor": "456",
+    "vote": "0",
+    "pathElements": [
+        "28e451e22238aa8fda5f4ebf1786b5476da43db599a681da3dc06be53bf5216b",
+        "0e0a3aba03e655e69bd95892fd9a58ae89bd7d39a57ccb66758b181c507d886c",
+        "0db51a7cf7b0f7d14df369b3a8efc5d10e45d8c91ea2a8e70036022818dbdb60"
+    ],
+    "pathIndices": ["0", "0", "0"],
+    "numCandidates": "5",
+    "electionId": "42",
+    "merkleRoot": "15524748295707824107570377714885681222955290906110250286265209554655643734748"
+}
