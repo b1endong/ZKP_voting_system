@@ -1,34 +1,100 @@
-import {MerkleTree} from "merkletreejs";
 import {buildPoseidon} from "circomlibjs";
 import users from "./users.js";
+import fs from "fs";
 
 const poseidon = await buildPoseidon();
 const F = poseidon.F;
 
-// Hash function using Poseidon
-function poseidonHash(data) {
-    return F.toObject(poseidon(data));
+// Hash function using Poseidon for single input (like poseidonHash1 in circuit)
+function poseidonHash1(data) {
+    return F.toObject(poseidon([BigInt(data)]));
 }
 
-// Create leaves by hashing user secrets and nullifier trapdoors
-const leaves = users.map((user) => poseidonHash([BigInt(user.secret)]));
-console.log(leaves[0].toString());
+// Hash function using Poseidon for two inputs (like poseidonHash2 in circuit)
+function poseidonHash2(left, right) {
+    return F.toObject(poseidon([BigInt(left), BigInt(right)]));
+}
 
-// Create the Merkle tree
-const tree = new MerkleTree(leaves, poseidonHash);
-console.log("Merkle Tree: ", BigInt(tree.getHexRoot()).toString());
-console.log("Depth", tree.getDepth());
+// Create leaves by hashing user secrets using poseidonHash1 (same as circuit)
+const leaves = users.map((user) => poseidonHash1(user.secret));
+console.log(
+    "Leaves:",
+    leaves.map((leaf) => leaf.toString())
+);
 
-const targetLeaf = leaves[0];
-const proof = tree.getProof(targetLeaf);
+// Manual Merkle tree construction with depth 2
+const depth = 2;
 
-console.log("\nProof for user 0 (secret: 123):");
-console.log("Leaf:", targetLeaf.toString());
-console.log("Proof:", proof);
+// For a tree with depth 2, we need 4 leaves (2^2 = 4)
+// Pad with zeros if we don't have enough leaves
+while (leaves.length < Math.pow(2, depth)) {
+    leaves.push(BigInt(0));
+}
 
-// Extract pathElement and pathIndices
-const pathElements = proof.map((p) => p.data.toString("hex"));
-const pathIndices = proof.map((p) => (p.position === "right" ? 0 : 1));
+// Build tree level by level
+let currentLevel = [...leaves];
+const tree = [currentLevel];
 
+for (let level = 0; level < depth; level++) {
+    const nextLevel = [];
+    for (let i = 0; i < currentLevel.length; i += 2) {
+        const left = currentLevel[i];
+        const right = currentLevel[i + 1] || BigInt(0);
+        const hash = poseidonHash2(left, right);
+        nextLevel.push(hash);
+    }
+    tree.push(nextLevel);
+    currentLevel = nextLevel;
+}
+
+const merkleRoot = currentLevel[0];
+console.log("Merkle Root:", merkleRoot.toString());
+
+// Generate proof for the first user (index 0)
+const userIndex = 0;
+const user = users[userIndex];
+
+// Calculate path elements and indices
+const pathElements = [];
+const pathIndices = [];
+
+let currentIndex = userIndex;
+for (let level = 0; level < depth; level++) {
+    const isRightChild = currentIndex % 2 === 1;
+    const siblingIndex = isRightChild ? currentIndex - 1 : currentIndex + 1;
+
+    // Get sibling element
+    const siblingElement = tree[level][siblingIndex] || BigInt(0);
+    pathElements.push(siblingElement.toString());
+
+    // Path index: 0 if current is left child, 1 if current is right child
+    pathIndices.push(isRightChild ? 1 : 0);
+
+    currentIndex = Math.floor(currentIndex / 2);
+}
+
+console.log("Proof for user", userIndex, ":");
 console.log("PathElements:", pathElements);
 console.log("PathIndices:", pathIndices);
+
+// Generate nullifier hash (like in circuit)
+const electionId = "42"; // Example election ID
+const nullifierHash = poseidonHash2(user.nullifierTrapdoor, electionId);
+
+// Create input object for the circuit
+const input = {
+    secret: user.secret,
+    nullifierTrapdoor: user.nullifierTrapdoor,
+    vote: "0", // Vote for candidate 0 (can be 0 or 1 based on circuit constraint)
+    pathElements: pathElements,
+    pathIndices: pathIndices,
+    electionId: electionId,
+    merkleRoot: merkleRoot.toString(),
+};
+
+console.log("\nGenerated input for circuit:");
+console.log(JSON.stringify(input, null, 2));
+
+// Write input to input.json file
+fs.writeFileSync("input.json", JSON.stringify(input, null, 2));
+console.log("\nInput saved to input.json");
