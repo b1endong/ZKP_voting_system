@@ -81,11 +81,19 @@ console.log("PathIndices:", pathIndices);
 const electionId = "42"; // Example election ID
 const nullifierHash = poseidonHash2(user.nullifierTrapdoor, electionId);
 
+// Generate commitment (like in circuit)
+const randomness = BigInt(123456); // Example randomness
+const votes = [0, 1, 0, 0];
+const commitmentInputs = [...votes.map((v) => BigInt(v)), randomness];
+const commitment = F.toObject(poseidon(commitmentInputs));
+
 // Create input object for the circuit
 const input = {
     secret: user.secret,
     nullifierTrapdoor: user.nullifierTrapdoor,
-    vote: "0", // Vote for candidate 0 (can be 0 or 1 based on circuit constraint)
+    vote: votes,
+    randomness: randomness.toString(),
+    commitment: commitment.toString(),
     pathElements: pathElements,
     pathIndices: pathIndices,
     electionId: electionId,
@@ -96,5 +104,5 @@ console.log("\nGenerated input for circuit:");
 console.log(JSON.stringify(input, null, 2));
 
 // Write input to input.json file
-fs.writeFileSync("input.json", JSON.stringify(input, null, 2));
+fs.writeFileSync("input/input.json", JSON.stringify(input, null, 2));
 console.log("\nInput saved to input.json");

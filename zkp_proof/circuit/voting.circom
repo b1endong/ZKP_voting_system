@@ -96,13 +96,15 @@ template VotingCircuit(depth, numCandidates){
     //////////////////////////////////////////////////////////////*/
 
     // Ensure that vote is one-hot encoded (i.e., exactly one entry is 1, rest are 0) [0,0,1,0,...]
-    signal sumVotes;
-    sumVotes <== 0;
+    signal votes[numCandidates];
+    signal voteSum[numCandidates + 1];
+    voteSum[0] <== 0;
     for (var j = 0; j < numCandidates; j++) {
+        votes[j] <== vote[j];
         votes[j] * (votes[j] - 1) === 0; // boolean
-        sumVotes <== sumVotes + votes[j];
-    }
-    sumVotes === 1;
+        voteSum[j + 1] <== voteSum[j] + votes[j];
+        }
+    voteSum[numCandidates] === 1;
 
     /*//////////////////////////////////////////////////////////////
                             COMMITMENT CHECK
