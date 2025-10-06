@@ -2,6 +2,10 @@ pragma circom 2.0.0;
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../../node_modules/circomlib/circuits/comparators.circom";
 
+/*//////////////////////////////////////////////////////////////
+                    POSEIDON HASH FUNCTION
+//////////////////////////////////////////////////////////////*/
+
 template poseidonHash1(){
         signal input in;
         signal output out;
@@ -20,29 +24,46 @@ template poseidonHash1(){
         out <== p.out;
     }
 
-template VotingCircuit(depth){
+template VotingCircuit(depth, numCandidates){
 
-    // Private Input signals
+    /*//////////////////////////////////////////////////////////////
+                         PRIVATE INPUT SIGNALS
+    //////////////////////////////////////////////////////////////*/
+
     signal input secret;
     signal input nullifierTrapdoor;
-    signal input vote; 
+    signal input vote[numCandidates]; // One-hot encoded vote
+    signal input randomness;          // nonce for commitment
     signal input pathElements[depth];
     signal input pathIndices[depth];
 
-    // Public Input signals
+    /*//////////////////////////////////////////////////////////////
+                          PUBLIC INPUT SIGNALS
+    //////////////////////////////////////////////////////////////*/
+
     signal input electionId;
     signal input merkleRoot;
+    signal input commitment;
 
-    // Public Output signals
+    /*//////////////////////////////////////////////////////////////
+                         PUBLIC OUTPUT SIGNALS
+    //////////////////////////////////////////////////////////////*/
+
     signal output nullifierHash; 
 
-    // Hash the secret to get the public key and assign it to the leaf
+    /*//////////////////////////////////////////////////////////////
+                   CREATE PUBLIC KEY FROM SECRET KEY
+    //////////////////////////////////////////////////////////////*/
+
     component h1 = poseidonHash1();
     h1.in <== secret;
     signal leaf;
     leaf <== h1.out;
 
-    // Compute the Merkle root from the leaf and the path
+    /*//////////////////////////////////////////////////////////////
+                          COMPUTE MERKLE ROOT
+    //////////////////////////////////////////////////////////////*/
+
     component h2[depth];
     signal curr[depth + 1];
     signal left[depth];
@@ -63,20 +84,48 @@ template VotingCircuit(depth){
         h2[i].in2 <== right[i];
         curr[i + 1] <== h2[i].out;
     }
-    // Ensure the computed root matches the provided Merkle root    
+
+    /*//////////////////////////////////////////////////////////////
+              COMPUTE ROOT MUST MATCHES THE PROVIDED ROOT
+    //////////////////////////////////////////////////////////////*/
+
     curr[depth] === merkleRoot;
     
-    // 0 <= vote < numCandidates
-        // component comparator = LessThan(32);
-        // comparator.in[0] <== vote;
-        // comparator.in[1] <== numCandidates;
-        // comparator.out === 1; // Ensure vote is less than numCandidates
-    
-    vote * (vote - 1) === 0;
-    // Compute the nullifier to prevent double voting
+    /*//////////////////////////////////////////////////////////////
+                  VOTE VALIDATION
+    //////////////////////////////////////////////////////////////*/
+
+    // Ensure that vote is one-hot encoded (i.e., exactly one entry is 1, rest are 0) [0,0,1,0,...]
+    signal sumVotes;
+    sumVotes <== 0;
+    for (var j = 0; j < numCandidates; j++) {
+        votes[j] * (votes[j] - 1) === 0; // boolean
+        sumVotes <== sumVotes + votes[j];
+    }
+    sumVotes === 1;
+
+    /*//////////////////////////////////////////////////////////////
+                            COMMITMENT CHECK
+    //////////////////////////////////////////////////////////////*/
+
+    component commHash = Poseidon(numCandidates + 1);
+    for (var k = 0; k < numCandidates; k++) {
+        commHash.inputs[k] <== votes[k];
+    }
+    commHash.inputs[numCandidates] <== randomness;
+    signal computedCommit;
+    computedCommit <== commHash.out;
+
+    // Enforce the computed commitment equals the public commitment input
+    computedCommit === commitment;
+
+    /*//////////////////////////////////////////////////////////////
+                  NULLIFIER HASH COMPUTATION
+    //////////////////////////////////////////////////////////////*/
+
     component poseidon3 = Poseidon(2);
     poseidon3.inputs[0] <== nullifierTrapdoor;
     poseidon3.inputs[1] <== electionId;
     nullifierHash <== poseidon3.out; 
 }
-component main = VotingCircuit(2);
+component main = VotingCircuit(2,4); // Example with depth 2 and 4 candidates
