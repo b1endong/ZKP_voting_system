@@ -1,0 +1,27 @@
+cd zkp_proof
+
+# Compile circuit
+circom circuit/voting.circom --r1cs --wasm --sym --c
+
+# Computing witness
+node voting_js/generate_witness.js voting_js/voting.wasm input/input.json witness.wtns
+
+# Generate Proof
+## Ceremony
+snarkjs powersoftau new bn128 12 pot12_0000.ptau -v
+snarkjs powersoftau contribute pot12_0000.ptau pot12_0001.ptau --name="First contribution" -v
+
+## Generate zkey
+snarkjs powersoftau prepare phase2 pot12_0001.ptau pot12_final.ptau -v
+snarkjs groth16 setup voting.r1cs pot12_final.ptau voting_0000.zkey
+snarkjs zkey contribute voting_0000.zkey voting_0001.zkey --name="1st Contributor Name" -v
+
+## Export vkey
+snarkjs zkey export verificationkey voting_0001.zkey verification_key.json
+
+## Generate a proof
+snarkjs groth16 prove voting_0001.zkey witness.wtns proof.json public.json
+
+#Verify a proof
+snarkjs groth16 verify verification_key.json public.json proof.json
+
