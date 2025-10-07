@@ -6,10 +6,10 @@ contract Voting {
     Groth16Verifier verifier;
     address public owner;
     bytes32 public merkleRoot;
-    uint256 private electionId;
+    uint256 public electionId;
     uint256 private randomness;
-    uint256 private numCandidates;
-    mapping(uint256 => bool) public nullifierUsed;
+    uint256 public numCandidates;
+    mapping(uint256 => bool) private nullifierUsed;
     mapping(uint256 => uint256) public voteCounts; // candidateId => voteCount
     uint256 public totalVotes;
     bool public votingEnded;
@@ -53,62 +53,26 @@ contract Voting {
         uint256[2][2] calldata b,
         uint256[2] calldata c,
         uint256[1] calldata publicSignals,
-        uint256 nullifierProvided,
         bytes32 commitment
     ) external {
         require(!votingEnded, "Voting has ended");
 
         // Check if nullifier has been used (prevent double voting)
-        require(!nullifierUsed[nullifierProvided], "Vote already cast");
+        require(!nullifierUsed[publicSignals[0]], "Vote already cast");
 
         // Verify the ZK proof
         // publicSignals[0] should be the nullifierHash from the circuit
-        require(verifier.verifyProof(a, b, c, publicSignals), "Invalid proof");
-
-        // Verify that the provided nullifier matches the one in public signals
-        require(nullifierProvided == publicSignals[0], "Nullifier mismatch");
+        bool valid = verifier.verifyProof(a, b, c, publicSignals);
+        require(valid, "Invalid proof");
 
         // Mark nullifier as used
-        nullifierUsed[nullifierProvided] = true;
+        nullifierUsed[publicSignals[0]] = true;
 
         // Increment total votes
         totalVotes++;
 
         // Emit event with voter's commitment
         emit VoteSubmitted(msg.sender, commitment);
-    }
-
-    function endVoting() external onlyOwner {
-        require(!votingEnded, "Voting already ended");
-        votingEnded = true;
-        emit VotingEnded(totalVotes);
-    }
-
-    function revealVoteCount(
-        uint256 candidateId,
-        uint256 count
-    ) external onlyOwner {
-        require(votingEnded, "Voting not ended yet");
-        require(candidateId < numCandidates, "Invalid candidate ID");
-
-        voteCounts[candidateId] = count;
-        emit VoteCountRevealed(candidateId, count);
-    }
-
-    function getVoteCount(uint256 candidateId) external view returns (uint256) {
-        require(votingEnded, "Voting not ended yet");
-        require(candidateId < numCandidates, "Invalid candidate ID");
-        return voteCounts[candidateId];
-    }
-
-    function getAllVoteCounts() external view returns (uint256[] memory) {
-        require(votingEnded, "Voting not ended yet");
-
-        uint256[] memory counts = new uint256[](numCandidates);
-        for (uint256 i = 0; i < numCandidates; i++) {
-            counts[i] = voteCounts[i];
-        }
-        return counts;
     }
 
     function getElectionInfo()
