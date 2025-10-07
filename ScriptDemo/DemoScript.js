@@ -2,6 +2,7 @@ import {users} from "./DemoUser.js";
 import {ethers} from "ethers";
 import {contractAddress, contractAbi} from "./ContractData.js";
 import {buildPoseidon} from "circomlibjs";
+import {performance} from "perf_hooks";
 import {groth16} from "snarkjs";
 import dotenv from "dotenv";
 dotenv.config({
@@ -31,11 +32,13 @@ function poseidonHash2(data1, data2) {
 }
 
 async function demoVote(candidateIndex) {
+    const demoUser = 3; // Giả sử cử tri là user thứ ba
+    const startSetup = performance.now();
     // 1. Khi bắt đầu một cuộc bầu cử mới, mỗi cử tri sẽ được cấp
     //    một secret duy nhất và một nullifierTrapdoor.
 
-    const userSecret = users[0].secret; // Giả sử cử tri là user đầu tiên
-    const userNullifierTrapdoor = users[0].nullifierTrapdoor;
+    const userSecret = users[demoUser].secret; // Giả sử cử tri là user thứ ba
+    const userNullifierTrapdoor = users[demoUser].nullifierTrapdoor;
     console.log("User Secret:", userSecret);
     console.log("User Nullifier Trapdoor:", userNullifierTrapdoor);
 
@@ -62,7 +65,7 @@ async function demoVote(candidateIndex) {
     console.log("Commitment:", commitment.toString());
 
     // 5. Tính cây merkle và tạo bằng chứng đường đi
-    const {pathElements, pathIndices} = calcMerkleProof(0, 2); // Tạo bằng chứng cho user đầu tiên với độ sâu 2
+    const {pathElements, pathIndices} = calcMerkleProof(demoUser, 2); // Tạo bằng chứng cho user thứ ba với độ sâu 2
 
     // 6. Tạo input cho zk-SNARK
     const zkInputs = {
@@ -77,36 +80,59 @@ async function demoVote(candidateIndex) {
         merkleRoot: merkleRoot.toString(),
     };
 
+    const endSetup = performance.now();
+    console.log(
+        `✅ Setup generated successfully in ${(endSetup - startSetup).toFixed(
+            2
+        )} ms`
+    );
     console.log("ZK Inputs:", zkInputs);
 
     // 7. Tạo zk-SNARK proof (Groth16)
     console.log("🔄 Generating ZK proof...");
+    const startProof = performance.now();
     const {proof, publicSignals} = await groth16.fullProve(
         zkInputs,
         "../zkp_proof/voting_js/voting.wasm",
         "../zkp_proof/voting_0001.zkey"
     );
-    console.log("✅ Proof generated successfully!");
+    const endProof = performance.now();
+    console.log(
+        `✅ Proof generated successfully in ${(endProof - startProof).toFixed(
+            2
+        )} ms`
+    );
     console.log("Proof:", proof);
     console.log("Public Signals:", publicSignals);
 
     // 8. Format proof cho Solidity
-    const solidityProof = formatProofForSolidity(
-        proof,
-        publicSignals,
-        commitment
-    );
-    console.log("Formatted proof for Solidity:", solidityProof);
+    const calldata = await groth16.exportSolidityCallData(proof, publicSignals);
+    const solidityProof = formatProofForSolidity(calldata, commitment);
+    console.log("Solidity Proof:", solidityProof);
 
     //9. Submit vote lên blockchain
-    await votingContract.submitVote(
+    console.log("🔄 Submitting vote to the blockchain...");
+    const startOnChain = performance.now();
+    const tx = await votingContract.submitVote(
         solidityProof.a,
         solidityProof.b,
         solidityProof.c,
         solidityProof.solidity_publicSignals,
         solidityProof.solidity_commitment
     );
-    console.log("✅ Vote submitted successfully!");
+    const receipt = await tx.wait();
+    const endOnChain = performance.now();
+    console.log(
+        `✅ Vote submitted successfully in ${(
+            endOnChain - startOnChain
+        ).toFixed(2)} ms`
+    );
+
+    const gasUsed = receipt.gasUsed;
+    const gasPrice = tx.gasPrice ?? (await provider.getFeeData()).gasPrice;
+    const gasFeeEth = (Number(gasUsed) * Number(gasPrice)) / 1e18;
+    console.log(`⛽ Gas used: ${gasUsed.toString()}`);
+    console.log(`💰 Gas fee: ${gasFeeEth.toFixed(8)} ETH`);
 
     try {
     } catch (error) {
@@ -170,18 +196,27 @@ function calcMerkleProof(_userIndex, _depth) {
     };
 }
 
-function formatProofForSolidity(proof, publicSignals, commitment) {
-    const a = proof.pi_a.slice(0, 2).map((x) => BigInt(x));
+function formatProofForSolidity(calldata, commitment) {
+    const argv = calldata
+        .replace(/["[\]\s]/g, "")
+        .split(",")
+        .map((x) => BigInt(x).toString());
+    const a = [argv[0], argv[1]];
     const b = [
-        proof.pi_b[0].slice(0, 2).map((x) => BigInt(x)),
-        proof.pi_b[1].slice(0, 2).map((x) => BigInt(x)),
+        [argv[2], argv[3]],
+        [argv[4], argv[5]],
     ];
-    const c = proof.pi_c.slice(0, 2).map((x) => BigInt(x));
-
-    const solidity_publicSignals = [BigInt(publicSignals[0])];
+    const c = [argv[6], argv[7]];
+    const solidity_publicSignals = [argv.slice(8)];
     const solidity_commitment =
         "0x" + BigInt(commitment).toString(16).padStart(64, "0");
-    return {a, b, c, solidity_publicSignals, solidity_commitment};
+    return {
+        a,
+        b,
+        c,
+        solidity_publicSignals: solidity_publicSignals.flat(),
+        solidity_commitment,
+    };
 }
 
-demoVote(2);
+demoVote(1); // Bỏ phiếu cho ứng cử viên số 1
