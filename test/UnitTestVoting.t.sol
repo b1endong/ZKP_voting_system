@@ -12,25 +12,15 @@ contract TestVoting is Test {
     address owner = makeAddr("owner");
     uint256 constant electionId = 42;
     bytes32 constant merkleRoot =
-        bytes32(
-            (
-                uint256(
-                    16913408437976580737476875716108326861435185907917839778183277611231320791399
-                )
-            )
-        );
+        bytes32((uint256(16913408437976580737476875716108326861435185907917839778183277611231320791399)));
     uint256 constant numCandidates = 4;
     Groth16Verifier verifier;
     Voting voting;
+
     function setUp() public {
         vm.startPrank(owner);
         verifier = new Groth16Verifier();
-        voting = new Voting(
-            address(verifier),
-            electionId,
-            merkleRoot,
-            numCandidates
-        );
+        voting = new Voting(address(verifier), electionId, merkleRoot, numCandidates);
         vm.stopPrank();
     }
 
@@ -61,16 +51,10 @@ contract TestVoting is Test {
             12613993421025885958955581681315989524717529924765682243130714621885740248162,
             7399454475275607435084253403724195490446520699631798340000287934719430206786
         ];
-        uint256[1] memory publicSignals = [
-            uint256(
-                17141541128951136205286884206867621936295882637835868708156565111199086946105
-            )
-        ];
-        bytes32 commitment = bytes32(
-            uint256(
-                11341982949512057884670737814841439623351848605901602460849116037414548552753
-            )
-        );
+        uint256[1] memory publicSignals =
+            [uint256(17141541128951136205286884206867621936295882637835868708156565111199086946105)];
+        bytes32 commitment =
+            bytes32(uint256(11341982949512057884670737814841439623351848605901602460849116037414548552753));
         vm.startPrank(voter);
         vm.expectEmit();
         emit VoteSubmitted(voter, commitment);
@@ -100,16 +84,10 @@ contract TestVoting is Test {
             12613993421025885958955581681315989524717529924765682243130714621885740248162,
             7399454475275607435084253403724195490446520699631798340000287934719430206786
         ];
-        uint256[1] memory publicSignals = [
-            uint256(
-                17141541128951136205286884206867621936295882637835868708156565111199086946105
-            )
-        ];
-        bytes32 commitment = bytes32(
-            uint256(
-                11341982949512057884670737814841439623351848605901602460849116037414548552753
-            )
-        );
+        uint256[1] memory publicSignals =
+            [uint256(17141541128951136205286884206867621936295882637835868708156565111199086946105)];
+        bytes32 commitment =
+            bytes32(uint256(11341982949512057884670737814841439623351848605901602460849116037414548552753));
 
         //First vote sumbmitted successfully
         vm.prank(voter);
@@ -141,16 +119,10 @@ contract TestVoting is Test {
             12613993421025885958955581681315989524717529924765682243130714621885740248162,
             7399454475275607435084253403724195490446520699631798340000287934719430206786
         ];
-        uint256[1] memory publicSignals = [
-            uint256(
-                17141541128951136205286884206867621936295882637835868708156565111199086946105
-            )
-        ];
-        bytes32 commitment = bytes32(
-            uint256(
-                11341982949512057884670737814841439623351848605901602460849116037414548552753
-            )
-        );
+        uint256[1] memory publicSignals =
+            [uint256(17141541128951136205286884206867621936295882637835868708156565111199086946105)];
+        bytes32 commitment =
+            bytes32(uint256(11341982949512057884670737814841439623351848605901602460849116037414548552753));
         vm.expectRevert();
         vm.prank(voter);
         voting.submitVote(a, b, c, publicSignals, commitment);
