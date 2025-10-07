@@ -1,66 +1,145 @@
-## Foundry
+# 🗳️ ZKP Voting System
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+<div align="center">
 
-Foundry consists of:
+![Solidity](https://img.shields.io/badge/Solidity-^0.8.0-363636?logo=solidity)
+![Circom](https://img.shields.io/badge/Circom-2.0.0-purple)
+![Node.js](https://img.shields.io/badge/Node.js-18+-green?logo=node.js)
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+**Privacy-preserving voting system using Zero-Knowledge Proofs on Ethereum**
 
-## Documentation
+[Demo](#-demo) • [Setup](#-setup) • [Usage](#-usage)
 
-https://book.getfoundry.sh/
+</div>
 
-## Usage
+## 🌟 Features
 
-### Build
+-   **🔒 Private Voting**: Zero-knowledge proofs keep votes secret
+-   **🚫 No Double Voting**: Nullifier system prevents duplicate votes
+-   **✅ Verifiable**: Cryptographic proof ensures vote integrity
+-   **⚡ Fast**: Groth16 proofs verify in milliseconds
 
-```shell
-$ forge build
+## 🎮 Demo
+
+**Live Contract**: [`0xc6c80B8C21e093118474f6c0513Bb2E140365D3B`](https://sepolia.etherscan.io/address/0xc6c80B8C21e093118474f6c0513Bb2E140365D3B)
+
+```bash
+git clone https://github.com/b1endong/ZKP_voting_system.git
+cd ZKP_voting_system && npm install
+cd ScriptDemo && node DemoScript.js
 ```
 
-### Test
+## ⚡ Setup
 
-```shell
-$ forge test
+### Prerequisites
+
+-   Node.js 18+, Foundry, Circom
+
+### Quick Start
+
+```bash
+# Install dependencies
+npm install
+npm install -g snarkjs circom_runtime
+
+# Setup environment
+cp .env.example .env  # Add your RPC URL and private key
+
+# Compile circuit (optional - already compiled)
+cd zkp_proof
+circom circuit/voting.circom --r1cs --wasm --sym
+
+# Generate input and run demo
+cd input && node calcInput.js
+cd ../../ScriptDemo && node DemoScript.js
 ```
 
-### Format
+## 📖 Usage
 
-```shell
-$ forge fmt
+### Voting Process
+
+1. **Generate proof** from your vote + eligibility
+2. **Submit to blockchain** with zero-knowledge proof
+3. **Vote is counted** anonymously and verifiably
+
+### Code Example
+
+```javascript
+// Generate ZK proof
+const proof = await groth16.fullProve(voteInput, "voting.wasm", "voting.zkey");
+
+// Submit to contract
+await votingContract.submitVote(
+    proof.a,
+    proof.b,
+    proof.c,
+    publicSignals,
+    commitment
+);
 ```
 
-### Gas Snapshots
+## 🏗️ Architecture
 
-```shell
-$ forge snapshot
+```
+Voter → ZK Circuit → Smart Contract → Blockchain
+  ↓         ↓            ↓             ↓
+Secret   Generate     Verify       Record
+Vote     Proof        Proof        Result
 ```
 
-### Anvil
+**Components:**
 
-```shell
-$ anvil
+-   `voting.circom` - ZK circuit for proof generation
+-   `Voting.sol` - Smart contract for verification
+-   `verifier.sol` - Groth16 proof verifier
+-   `DemoScript.js` - Interactive demo
+
+## 📁 Project Structure
+
+```
+├── src/                # Smart contracts
+├── zkp_proof/          # ZK circuit & proofs
+├── ScriptDemo/         # Demo scripts
+├── test/               # Tests
+└── script/             # Deploy scripts
 ```
 
-### Deploy
+## 🧪 Testing
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```bash
+forge test -vv                    # Contract tests
+cd zkp_proof && node calcInput.js # Circuit test
 ```
 
-### Cast
+## 🔐 Security
 
-```shell
-$ cast <subcommand>
-```
+-   **ZK Privacy**: Votes mathematically hidden
+-   **Nullifier Protection**: Prevents double voting
+-   **Blockchain Security**: Immutable and transparent
+-   **Groth16 Proofs**: Industry-standard ZK system
 
-### Help
+## 🚀 Deployed Contracts
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+**Sepolia Testnet:**
+
+-   Voting: `0xc6c80B8C21e093118474f6c0513Bb2E140365D3B`
+-   Verifier: `0x9cc96b1827232826c970a59451d7c535fcdb11b0`
+
+## 🤝 Contributing
+
+1. Fork repo
+2. Create feature branch
+3. Test changes
+4. Submit PR
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE)
+
+---
+
+<div align="center">
+
+**⭐ Star if helpful!** • Made with ❤️ for private voting
+
+</div>
