@@ -15,8 +15,6 @@ contract Voting {
     bool public votingEnded;
 
     event VoteSubmitted(address indexed voter, bytes32 commitment);
-    event VotingEnded(uint256 totalVotes);
-    event VoteCountRevealed(uint256 candidateId, uint256 count);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not owner");
@@ -87,5 +85,13 @@ contract Voting {
         )
     {
         return (electionId, merkleRoot, numCandidates, totalVotes, votingEnded);
+    }
+
+    function getVerifier() external view returns (address) {
+        return address(verifier);
+    }
+
+    function getTotalVotes() external view returns (uint256) {
+        return totalVotes;
     }
 }
