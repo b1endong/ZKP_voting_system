@@ -21,7 +21,7 @@
 
 ## 🎮 Demo
 
-**Live Contract**: [`0xc6c80B8C21e093118474f6c0513Bb2E140365D3B`](https://sepolia.etherscan.io/address/0xc6c80B8C21e093118474f6c0513Bb2E140365D3B)
+**Live Contract**: [`0x8945A98c13228D70C323A9dF051Ee785008fcE17`](https://sepolia.etherscan.io/address/0x8945a98c13228d70c323a9df051ee785008fce17)
 
 ```bash
 git clone https://github.com/b1endong/ZKP_voting_system.git
@@ -122,8 +122,8 @@ cd zkp_proof && node calcInput.js # Circuit test
 
 **Sepolia Testnet:**
 
--   Voting: `0xc6c80B8C21e093118474f6c0513Bb2E140365D3B`
--   Verifier: `0x9cc96b1827232826c970a59451d7c535fcdb11b0`
+-   Voting: `0x8945A98c13228D70C323A9dF051Ee785008fcE17`
+-   Verifier: `0x8945A98c13228D70C323A9dF051Ee785008fcE17`
 
 ## 🤝 Contributing
 

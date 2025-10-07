@@ -18,7 +18,10 @@ docs/
 node_modules/
 
 # Circom / SnarkJS
-zkp_proof/*.zkey
-zkp_proof/*.r1cs
-zkp_proof/*.wasm
-zkp_proof/*.sym
+zkp_proof/voting_0000.zkey
+zkp_proof/voting_0001.zkey
+zkp_proof/voting.r1cs
+zkp_proof/voting_js
+zkp_proof/voting.sym
+zkp_proof/pot12_final.ptau
+zkp_proof/verification_key.json
