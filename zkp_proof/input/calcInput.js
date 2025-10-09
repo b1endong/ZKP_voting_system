@@ -86,6 +86,8 @@ const randomness = BigInt(123456); // Example randomness
 const votes = [0, 1, 0, 0];
 const commitmentInputs = [...votes.map((v) => BigInt(v)), randomness];
 const commitment = F.toObject(poseidon(commitmentInputs));
+const solidity_Merkle =
+    "0x" + BigInt(merkleRoot).toString(16).padStart(64, "0");
 
 // Create input object for the circuit
 const input = {
@@ -97,7 +99,7 @@ const input = {
     pathElements: pathElements,
     pathIndices: pathIndices,
     electionId: electionId,
-    merkleRoot: merkleRoot.toString(),
+    merkleRoot: solidity_Merkle,
 };
 
 console.log("\nGenerated input for circuit:");
