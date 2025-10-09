@@ -32,12 +32,12 @@ function poseidonHash2(data1, data2) {
 }
 
 async function demoVote(candidateIndex) {
-    const demoUser = 3; // Giả sử cử tri là user thứ ba
+    const demoUser = 1; // Giả sử cử tri là user thứ nhất
     const startSetup = performance.now();
     // 1. Khi bắt đầu một cuộc bầu cử mới, mỗi cử tri sẽ được cấp
     //    một secret duy nhất và một nullifierTrapdoor.
 
-    const userSecret = users[demoUser].secret; // Giả sử cử tri là user thứ ba
+    const userSecret = users[demoUser].secret; // Giả sử cử tri là user thứ tư
     const userNullifierTrapdoor = users[demoUser].nullifierTrapdoor;
     console.log("User Secret:", userSecret);
     console.log("User Nullifier Trapdoor:", userNullifierTrapdoor);
@@ -65,7 +65,7 @@ async function demoVote(candidateIndex) {
     console.log("Commitment:", commitment.toString());
 
     // 5. Tính cây merkle và tạo bằng chứng đường đi
-    const {pathElements, pathIndices} = calcMerkleProof(demoUser, 2); // Tạo bằng chứng cho user thứ ba với độ sâu 2
+    const {pathElements, pathIndices} = calcMerkleProof(demoUser, 2); // Tạo bằng chứng cho user thứ tư với độ sâu 2
 
     // 6. Tạo input cho zk-SNARK
     const zkInputs = {
