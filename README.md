@@ -26,70 +26,7 @@ Hệ thống bỏ phiếu phi tập trung sử dụng **Zero-Knowledge Proofs** 
 
 ## 🏗️ Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                    CHAIN A (Sepolia Testnet)                          │
-│  ┌──────────────────────┐         ┌──────────────────────┐          │
-│  │  Voting Contract     │◄────────│  Updater (Light      │          │
-│  │                      │  query  │  Client)             │          │
-│  │  • Verify ZK proof   │  root   │                      │          │
-│  │  • Check nullifier   │         │  • Store merkle roots│          │
-│  │  • Prevent double    │         │  • Verify multi-sig  │          │
-│  │    voting            │         │  • 3-of-5 threshold  │          │
-│  │  • Tally results     │         │                      │          │
-│  └──────────────────────┘         └──────────┬───────────┘          │
-└────────────────────────────────────────────────┼──────────────────────┘
-                                                 │
-                                      ┌──────────▼──────────┐
-                                      │  Relayer (Python)   │
-                                      │                     │
-                                      │  • Poll Chain B     │
-                                      │  • Submit headers   │
-                                      │  • Gas management   │
-                                      └──────────┬──────────┘
-                                                 │
-┌────────────────────────────────────────────────┼──────────────────────┐
-│                 CHAIN B (Registry AppChain)                            │
-│                                                                         │
-│  ┌─────────────────────────────────────────────────────────────────┐  │
-│  │  Validator Consensus (3-of-5 Multi-Sig)                         │  │
-│  │  • Validator 0, 1, 2, 3, 4                                      │  │
-│  │  • Proposal-based voting for state changes                      │  │
-│  │  • Block proposer rotation (round-robin)                        │  │
-│  └─────────────────────────────────────────────────────────────────┘  │
-│                                 ↓                                       │
-│  ┌─────────────────────────────────────────────────────────────────┐  │
-│  │  Voter Registry (IdentityData)                                  │  │
-│  │  • userId → commitment mapping                                  │  │
-│  │  • commitment = Poseidon(secret, nullifierTrapdoor)            │  │
-│  │  • Secret NEVER stored on-chain                                 │  │
-│  └─────────────────────────────────────────────────────────────────┘  │
-│                                 ↓                                       │
-│  ┌─────────────────────────────────────────────────────────────────┐  │
-│  │  Poseidon Merkle Tree (Depth = 10)                              │  │
-│  │  • Leaves: [commitment1, commitment2, ...]                      │  │
-│  │  • Root verified by validators via multi-sig                    │  │
-│  └─────────────────────────────────────────────────────────────────┘  │
-│                                 ↓                                       │
-│  ┌─────────────────────────────────────────────────────────────────┐  │
-│  │  Block Production (Signed by 3+ validators)                     │  │
-│  │  • blockHeight, merkleRoot, timestamp, parentHash, blockHash    │  │
-│  │  • signatures: [sig1, sig2, sig3] (ECDSA)                       │  │
-│  └─────────────────────────────────────────────────────────────────┘  │
-│                                                                         │
-│  📡 RPC Server (Flask - Port 5000)                                     │
-│  • /get_merkle_root, /get_merkle_proof, /produce_block                │
-│  • /submit_transaction (add/remove voter via consensus)               │
-│  • /get_voters, /calculate_commitment                                  │
-└─────────────────────────────────────────────────────────────────────────┘
-                                 ↑
-                      ┌──────────┴──────────┐
-                      │                     │
-            ┌─────────▼──────────┐   ┌─────▼──────────────┐
-            │  Admin Portal      │   │  Voter Client      │
-            │  (add/remove voter)│   │  (submit vote)     │
-            └────────────────────┘   └────────────────────┘
-```
+<img width="735" height="521" alt="Architecture drawio" src="https://github.com/user-attachments/assets/bd9b0480-af26-442d-9090-145e7b3357b3" />
 
 ## 🌟 Key Features
 
