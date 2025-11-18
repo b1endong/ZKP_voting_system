@@ -26,7 +26,7 @@ Hệ thống bỏ phiếu phi tập trung sử dụng **Zero-Knowledge Proofs** 
 
 ## 🏗️ Architecture
 
-<img width="735" height="521" margin="auto" alt="Architecture drawio" src="https://github.com/user-attachments/assets/bd9b0480-af26-442d-9090-145e7b3357b3" />
+<img width="100%" height="auto" alt="Architecture drawio" src="https://github.com/user-attachments/assets/bd9b0480-af26-442d-9090-145e7b3357b3" />
 
 ## 🌟 Key Features
 
