@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZKP Voting | Secure & Anonymous</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+    <div class="bg-grid"></div>
+
+    <nav class="navbar">
+        <div class="logo"><i class="fa-solid fa-box-archive"></i> ZKP Voting</div>
+        <div class="status-container">
+            <div id="network-status" class="status-badge"><i class="fa-solid fa-globe"></i> <span id="network-name">Mạng
+                    chưa kết nối</span></div>
+            <div id="wallet-status" class="status-badge wallet-badge"><i class="fa-solid fa-wallet"></i> <span
+                    id="wallet-address">Kết nối Ví</span></div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="stepper-wrapper">
+            <div class="stepper-item active" data-step="1">
+                <div class="step-counter">1</div>
+                <div class="step-name">Kết nối</div>
+            </div>
+            <div class="stepper-item" data-step="2">
+                <div class="step-counter">2</div>
+                <div class="step-name">Bí mật</div>
+            </div>
+            <div class="stepper-item" data-step="3">
+                <div class="step-counter">3</div>
+                <div class="step-name">Bầu cử</div>
+            </div>
+            <div class="stepper-item" data-step="4">
+                <div class="step-counter">4</div>
+                <div class="step-name">Xác thực</div>
+            </div>
+        </div>
+
+        <main class="glass-panel">
+            <section class="step-section active-section" id="step-connect">
+                <div class="content-center">
+                    <div class="icon-lg">🦊</div>
+                    <h2>Kết nối MetaMask</h2>
+                    <p>Hệ thống bỏ phiếu ẩn danh sử dụng công nghệ Zero-Knowledge Proof.</p>
+                    <button id="connect-wallet-btn" class="btn btn-primary btn-glow">Kết nối MetaMask <i
+                            class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </section>
+
+            <section class="step-section" id="step-secret" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-user-secret"></i> Nhập Mã Bí Mật</h2>
+                </div>
+                <div class="form-group">
+                    <label>Mã bí mật 1</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="voter-secret-1" class="form-input voter-secret"
+                            placeholder="Nhập số...">
+                        <button type="button" class="toggle-vis-btn"><i class="fa-solid fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Mã bí mật 2</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="voter-secret-2" class="form-input voter-secret"
+                            placeholder="Nhập số...">
+                        <button type="button" class="toggle-vis-btn"><i class="fa-solid fa-eye"></i></button>
+                    </div>
+                </div>
+                <div id="secret-status" class="status-message"></div>
+            </section>
+
+            <section class="step-section" id="step-vote" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-check-to-slot"></i> Chọn Ứng Viên</h2>
+                </div>
+                <div id="candidate-list" class="candidate-grid"></div>
+                <div class="selection-summary"><span>Đã chọn:</span> <strong id="selected-candidate-name"
+                        class="highlight-text">Chưa chọn</strong></div>
+            </section>
+
+            <section class="step-section" id="step-submit" style="display: none;">
+                <div class="content-center">
+                    <div class="icon-lg">🚀</div>
+                    <h2>Xác nhận</h2>
+                    <div id="proof-progress" class="progress-container" style="display: none;">
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill"></div>
+                        </div>
+                        <p id="progress-text">Đang xử lý...</p>
+                    </div>
+                    <button id="submit-vote-btn" class="btn btn-success btn-xl btn-glow">Tạo Proof & Bỏ Phiếu</button>
+                    <div id="result-message" class="result-message"></div>
+                </div>
+            </section>
+            <section class="step-section" id="step-winner" style="display: none;">
+                <div class="content-center">
+                    <div class="winner-icon">🏆</div>
+                    <h2 class="gradient-text">Cuộc Bầu Cử Kết Thúc!</h2>
+                    <p class="sub-text">Người chiến thắng là:</p>
+
+                    <div class="winner-card">
+                        <div class="winner-avatar">👑</div>
+                        <h3 id="winner-name">Đang tải...</h3>
+                        <div class="winner-votes">
+                            <span id="winner-votes-count">0</span> phiếu
+                        </div>
+                    </div>
+
+                    <button onclick="location.reload()" class="btn btn-secondary mt-4">
+                        <i class="fa-solid fa-rotate-right"></i> Làm mới trang
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Powered by SnarkJS & Circom</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/snarkjs@latest/build/snarkjs.min.js"></script>
+
+    <script type="module" src="app.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('.toggle-vis-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const input = this.parentElement.querySelector('input');
+                    if (input) {
+                        input.type = (input.type === "password") ? "text" : "password";
+                        this.innerHTML = (input.type === "password") ? '<i class="fa-solid fa-eye"></i>' : '<i class="fa-solid fa-eye-slash"></i>';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

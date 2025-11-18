@@ -53,8 +53,7 @@ template VotingCircuit(depth, numCandidates){
 
     /*//////////////////////////////////////////////////////////////
                    CREATE PUBLIC KEY FROM SECRET KEY
-    //////////////////////////////////////////////////////////////*/
-
+    ////////////////////////////////////////////////////////////////*/
     component h1 = poseidonHash1();
     h1.in <== secret;
     signal leaf;
@@ -64,25 +63,32 @@ template VotingCircuit(depth, numCandidates){
                           COMPUTE MERKLE ROOT
     //////////////////////////////////////////////////////////////*/
 
-    component h2[depth];
+component h2[depth];
+    component isZero[depth];
     signal curr[depth + 1];
     signal left[depth];
     signal right[depth];
+    signal computedHash[depth]; // Hash tạm thời
+
     curr[0] <== leaf;
     
     for (var i = 0; i < depth; i++) {
+        // 1. Tính toán hash (như bình thường)
         h2[i] = poseidonHash2();
-        
-        // Use intermediate signals to avoid quadratic constraints
-        // pathIndices[i] should be 0 or 1
-        // When pathIndices[i] == 0: left = curr[i], right = pathElements[i]  
-        // When pathIndices[i] == 1: left = pathElements[i], right = curr[i]
         left[i] <== curr[i] + pathIndices[i] * (pathElements[i] - curr[i]);
         right[i] <== pathElements[i] + pathIndices[i] * (curr[i] - pathElements[i]);
-        
         h2[i].in1 <== left[i];
         h2[i].in2 <== right[i];
-        curr[i + 1] <== h2[i].out;
+        computedHash[i] <== h2[i].out;
+        
+        // 2. Kiểm tra xem sibling (pathElements[i]) có bằng 0 không
+        isZero[i] = IsZero();
+        isZero[i].in <== pathElements[i];
+        
+        // 3. Chọn node tiếp theo
+        // Nếu sibling = 0 (isZero.out=1), node tiếp theo = node hiện tại
+        // Nếu sibling != 0 (isZero.out=0), node tiếp theo = hash vừa tính
+        curr[i + 1] <== curr[i] + (1 - isZero[i].out) * (computedHash[i] - curr[i]);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -110,15 +116,22 @@ template VotingCircuit(depth, numCandidates){
                             COMMITMENT CHECK
     //////////////////////////////////////////////////////////////*/
 
-    component commHash = Poseidon(numCandidates + 1);
-    for (var k = 0; k < numCandidates; k++) {
-        commHash.inputs[k] <== votes[k];
-    }
-    commHash.inputs[numCandidates] <== randomness;
-    signal computedCommit;
-    computedCommit <== commHash.out;
+    component voteHasher[numCandidates];
+    signal voteHashState[numCandidates + 1];
 
-    // Enforce the computed commitment equals the public commitment input
+    // Khởi tạo hash state bằng randomness (đóng vai trò là Salt/Nonce)
+    voteHashState[0] <== randomness;
+
+    for (var k = 0; k < numCandidates; k++) {
+        voteHasher[k] = Poseidon(2);
+        voteHasher[k].inputs[0] <== voteHashState[k];
+        voteHasher[k].inputs[1] <== votes[k];
+        voteHashState[k+1] <== voteHasher[k].out;
+    }
+
+    signal computedCommit;
+    computedCommit <== voteHashState[numCandidates];
+
     computedCommit === commitment;
 
     /*//////////////////////////////////////////////////////////////
@@ -130,4 +143,4 @@ template VotingCircuit(depth, numCandidates){
     poseidon3.inputs[1] <== electionId;
     nullifierHash <== poseidon3.out; 
 }
-component main = VotingCircuit(2,4); // Example with depth 2 and 4 candidates
+component main {public [electionId, merkleRoot, commitment]} = VotingCircuit(10,100); // Example with depth 10 and 100 candidates

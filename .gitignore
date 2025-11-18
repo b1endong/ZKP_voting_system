@@ -23,5 +23,7 @@ zkp_proof/voting_0001.zkey
 zkp_proof/voting.r1cs
 zkp_proof/voting_js
 zkp_proof/voting.sym
-zkp_proof/pot12_final.ptau
+zkp_proof/pot17_0000.ptau
+zkp_proof/pot17_0001.ptau
+zkp_proof/pot17_final.ptau
 zkp_proof/verification_key.json

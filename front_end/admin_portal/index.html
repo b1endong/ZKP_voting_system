@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - Chain B</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div class="container" id="main-container">
+        <nav class="navbar">
+            <div class="logo">
+                <span class="logo-icon">⚡</span> Chain B <span class="badge">Admin</span>
+            </div>
+
+            <div class="wallet-info">
+                <button id="connect-admin-btn" class="btn btn-primary btn-sm">
+                    🦊 Kết nối Ví Admin
+                </button>
+            </div>
+        </nav>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon icon-blue">👥</div>
+                <div class="stat-details">
+                    <h3>Tổng Cử Tri</h3>
+                    <span id="voter-count">0</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-green">🔗</div>
+                <div class="stat-details">
+                    <h3>Trạng thái RPC</h3>
+                    <span id="chain-b-status" class="status-text">Checking...</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-purple">📦</div>
+                <div class="stat-details">
+                    <h3>Block Mới Nhất</h3>
+                    <span id="latest-block">#0</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="dashboard" class="dashboard-grid">
+
+            <div class="grid-column-left">
+                <section class="card glow-card">
+                    <div class="card-header">
+                        <h2>👤 Thêm Cử Tri</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="form-group">
+                            <label>Tên hiển thị</label>
+                            <input type="text" id="voter-name" placeholder="VD: cử tri #1">
+                        </div>
+                        <div class="form-group">
+                            <label>Mã Bí Mật (Secret)</label>
+                            <div class="input-group">
+                                <input type="text" id="voter-secret-input" placeholder="Nhập hoặc tạo...">
+                                <button id="generate-secret-btn" class="btn btn-icon">🎲</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Commitment Hash</label>
+                            <input type="text" id="commitment-display" class="code-input" readonly placeholder="0x...">
+                        </div>
+                        <button id="add-voter-btn" class="btn btn-primary btn-full">Thêm vào Chain</button>
+                        <div id="add-voter-result" class="message"></div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="card-header">
+                        <h2>🚫 Xóa Cử Tri</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="form-group">
+                            <label>Commitment cần xóa</label>
+                            <input type="text" id="remove-commitment" class="code-input" placeholder="0x...">
+                        </div>
+                        <button id="remove-voter-btn" class="btn btn-danger btn-full">Xóa Khỏi Chain</button>
+                        <div id="remove-voter-result" class="message"></div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="card-header">
+                        <h2>⛏️ Block Production</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="info-row">
+                            <span>Merkle Root:</span>
+                            <span id="merkle-root" class="code-text">0x0...</span>
+                        </div>
+                        <div class="info-row">
+                            <span>Validators:</span>
+                            <span id="validator-count">0</span>
+                        </div>
+                        <button id="produce-block-btn" class="btn btn-success btn-full mt-3">Xác nhận & Tạo
+                            Block</button>
+                        <div id="produce-block-result" class="message"></div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="grid-column-right">
+                <section class="card full-height">
+                    <div class="card-header flex-between">
+                        <h2>📋 Danh Sách Cử Tri</h2>
+                        <button id="refresh-list-btn" class="btn btn-sm btn-secondary">🔄</button>
+                    </div>
+                    <div class="card-content scrollable-content">
+                        <div id="voter-list-container">
+                            <div class="empty-state">
+                                <span>📭</span>
+                                <p>Chưa có dữ liệu</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script type="module" src="admin.js"></script>
+</body>
+
+</html>

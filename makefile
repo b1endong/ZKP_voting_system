@@ -9,4 +9,4 @@ ifeq ($(findstring --network sepolia,$(ARGS)),--network sepolia)
 endif
 
 deployVoting:
-	@forge script script/DeployVoting.s.sol:DeployVoting $(NETWORK_ARGS)
+	@forge script foundry_contract/script/DeployVoting.s.sol:DeployVoting $(NETWORK_ARGS)

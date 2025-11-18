@@ -1,9 +1,9 @@
 [profile.default]
-src = "foundry_contract/src"
-out = "foundry_contract/out"
-libs = ["foundry_contract/lib"]
-test = "foundry_contract/test"
-script = "foundry_contract/script"
+src = "src"
+out = "out"
+libs = ["lib"]
+test = "test"
+script = "script"
 solc_version = "0.8.30"
 evm_version = "cancun"
 optimizer = true
